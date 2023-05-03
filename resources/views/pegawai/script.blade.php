@@ -41,30 +41,90 @@
         $('#exampleModal').modal('show')
 
         $('.tombol-simpan').click(function() {
-            var nama = $('#nama').val()
-            var email = $('#email').val()
-            $.ajax({
-                url: 'pegawaiAjax',
-                type: 'POST',
-                data: {
-                    nama,
-                    email
-                },
-                success: function(response) {
-                    if (response.errors) {
-                        $('.alert-danger').removeClass('d-none');
-                        $('.alert-danger').html("<ul>");
-                        $.each(response.errors, function(key, value) {
-                            $('.alert-danger').find('ul').append("<li>" + value +
-                                "</li>");
-                        });
-                        $('.alert-danger').append("</ul>");
-                    } else {
-                        $('#myTable').DataTable().ajax.reload();
-                        $('#exampleModal').modal('hide')
-                    }
-                }
-            })
+            simpan();
         })
     });
+
+    // 03_PROSES_EDIT
+    $('body').on('click', '.tombol-edit', function(e) {
+        var id = $(this).data('id')
+        $.ajax({
+            url: 'pegawaiAjax/' + id + '/edit',
+            type: 'GET',
+            success: function(response) {
+                $('#exampleModal').modal('show');
+                $('#nama').val(response.result.nama)
+                $('#email').val(response.result.email)
+                // console.log(response)
+                $('.tombol-simpan').click(function() {
+                    simpan(id);
+                })
+            }
+        });
+    });
+
+    // 04_PROSES_DELETE
+    $('body').on('click', '.tombol-del', function(e) {
+
+        if (confirm('Yakin akan hapus data ini?') == true) {
+            var id = $(this).data('id')
+            $.ajax({
+                url: 'pegawaiAjax/' + id,
+                type: 'DELETE',
+            });
+            $('#myTable').DataTable().ajax.reload();
+        }
+
+    })
+
+    // fungsi simpan dan update
+    function simpan(id = '') {
+
+        if (id == '') {
+            var var_url = 'pegawaiAjax';
+            var var_type = 'POST';
+        } else {
+            var var_url = 'pegawaiAjax/' + id;
+            var var_type = 'PUT';
+        }
+
+        var nama = $('#nama').val()
+        var email = $('#email').val()
+
+        $.ajax({
+            url: var_url,
+            type: var_type,
+            data: {
+                nama,
+                email
+            },
+            success: function(response) {
+                if (response.errors) {
+                    $('.alert-danger').removeClass('d-none');
+                    $('.alert-danger').html("<ul>");
+                    $.each(response.errors, function(key, value) {
+                        $('.alert-danger').find('ul').append("<li>" + value +
+                            "</li>");
+                    });
+                    $('.alert-danger').append("</ul>");
+                } else {
+                    $('.alert-success').removeClass('d-none');
+                    $('.alert-success').html(response.success);
+                }
+                $('#myTable').DataTable().ajax.reload();
+                // $('#exampleModal').modal('hide')
+            }
+        })
+    }
+
+    $('#exampleModal').on('hidden.bs.modal', function() {
+        $('#nama').val('');
+        $('#email').val('');
+
+        $('.alert-danger').addClass('d-none');
+        $('.alert-danger').html('');
+
+        $('.alert-success').addClass('d-none');
+        $('.alert-success').html('');
+    })
 </script>
